@@ -23,17 +23,47 @@ caverns:
     # Minimal distance between sound sources if server-wise option is used.
     # May affect performance when enabled. Set to 0 or lower to disable
     server-wise-distance: 0
-    # List of sounds to play - you can add more or remove some
+    # List of sounds to play - you can add more or remove some.
+    # "weight" controls how often each one gets picked relative to the
+    # others (default 10). Give the scariest ones a lower weight so they
+    # stay rare and hit harder.
     sounds:
       MUSIC_DISC_11:
         volume: 1
         pitch: 0.5
+        weight: 10
       ENCHANT_THORNS_HIT:
         volume: 0.04
         pitch: 0.2
+        weight: 10
       ENTITY_GHAST_SCREAM:
         volume: 1
         pitch: 0.5
+        weight: 8
+      MUSIC_DISC_13:
+        volume: 1
+        pitch: 1
+        weight: 10
+      AMBIENT_CAVE:
+        volume: 1
+        pitch: 0.8
+        weight: 10
+      BLOCK_SCULK_SHRIEKER_SHRIEK:
+        volume: 0.6
+        pitch: 0.6
+        weight: 4
+      ENTITY_WARDEN_NEARBY_CLOSE:
+        volume: 0.5
+        pitch: 1
+        weight: 2
+      ENTITY_ENDERMAN_STARE:
+        volume: 0.7
+        pitch: 0.7
+        weight: 6
+      ENTITY_WITHER_AMBIENT:
+        volume: 0.3
+        pitch: 0.4
+        weight: 3
 
     # The deeper a player is, the more often ambient sounds play and the
     # lower-pitched (spookier) they sound. Set enabled: false to go back to

@@ -3,6 +3,7 @@ package dev.caveslite;
 import dev.caveslite.util.Locations;
 import dev.caveslite.util.Rng;
 import dev.caveslite.util.Sounds;
+import dev.caveslite.util.WeightedPool;
 import dev.caveslite.util.WorldFilter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -22,7 +23,7 @@ public final class AmbientSounds {
     private record WrappedSound(Sound sound, float volume, float pitch) {}
 
     private final Plugin plugin;
-    private final List<WrappedSound> sounds = new ArrayList<>();
+    private WeightedPool<WrappedSound> sounds = new WeightedPool<>();
     private final WorldFilter worlds = new WorldFilter();
 
     private boolean enabled;
@@ -61,7 +62,7 @@ public final class AmbientSounds {
         maxChanceMultiplier = depth != null ? depth.getDouble("max-chance-multiplier", 3.0) : 3.0;
         pitchDrop = depth != null ? depth.getDouble("pitch-drop", 0.3) : 0.3;
 
-        sounds.clear();
+        sounds = new WeightedPool<>();
         ConfigurationSection soundsSection = cfg.getConfigurationSection("sounds");
         if (soundsSection != null) {
             for (String name : soundsSection.getKeys(false)) {
@@ -70,11 +71,12 @@ public final class AmbientSounds {
                     plugin.getLogger().log(Level.WARNING, "Unknown ambient sound in config: {0}", name);
                     continue;
                 }
+                int weight = Math.max(1, soundsSection.getInt(name + ".weight", 10));
                 sounds.add(new WrappedSound(
                         sound,
                         (float) soundsSection.getDouble(name + ".volume", 1),
                         (float) soundsSection.getDouble(name + ".pitch", 0.5)
-                ));
+                ), weight);
             }
         }
     }
@@ -116,7 +118,7 @@ public final class AmbientSounds {
                     sources.add(loc);
                 }
 
-                play(Rng.randomElement(sounds), player, depth);
+                play(sounds.next(), player, depth);
             }
         }
     }
