@@ -7,11 +7,13 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.purpurmc.org/snapshots")
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:26.3.build.+")
+    // Purpur's API includes everything from Paper, Spigot and Bukkit, plus
+    // Purpur's own extras (better mob AI options, more config, etc.).
+    compileOnly("org.purpurmc.purpur:purpur-api:26.3.build.+")
 }
 
 java {

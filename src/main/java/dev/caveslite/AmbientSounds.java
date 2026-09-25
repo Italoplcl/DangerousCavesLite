@@ -32,6 +32,14 @@ public final class AmbientSounds {
     private boolean serverWide;
     private double serverWideDistanceSquared;
 
+    // Depth scaling: the deeper below yFull the player is, the more often
+    // sounds play and the lower-pitched (creepier) they get.
+    private boolean depthScaling;
+    private int depthYFull;
+    private int depthYNone;
+    private double maxChanceMultiplier;
+    private double pitchDrop;
+
     public AmbientSounds(Plugin plugin) {
         this.plugin = plugin;
     }
@@ -45,6 +53,13 @@ public final class AmbientSounds {
         double distance = cfg.getDouble("server-wise-distance", 0);
         serverWideDistanceSquared = distance * distance;
         worlds.reload(cfg.getStringList("worlds"));
+
+        ConfigurationSection depth = cfg.getConfigurationSection("depth-scaling");
+        depthScaling = depth != null && depth.getBoolean("enabled", true);
+        depthYFull = depth != null ? depth.getInt("y-full", -32) : -32;
+        depthYNone = depth != null ? depth.getInt("y-none", 60) : 60;
+        maxChanceMultiplier = depth != null ? depth.getDouble("max-chance-multiplier", 3.0) : 3.0;
+        pitchDrop = depth != null ? depth.getDouble("pitch-drop", 0.3) : 0.3;
 
         sounds.clear();
         ConfigurationSection soundsSection = cfg.getConfigurationSection("sounds");
@@ -64,6 +79,14 @@ public final class AmbientSounds {
         }
     }
 
+    /** 0 at or above depthYNone, 1 at or below depthYFull, linear in between. */
+    private double depthFactor(int y) {
+        if (!depthScaling || depthYNone <= depthYFull) return 0;
+        if (y <= depthYFull) return 1;
+        if (y >= depthYNone) return 0;
+        return (depthYNone - y) / (double) (depthYNone - depthYFull);
+    }
+
     /** Called periodically by the plugin's scheduler. */
     public void tick() {
         if (!enabled || sounds.isEmpty()) return;
@@ -75,7 +98,11 @@ public final class AmbientSounds {
             if (!worlds.allows(world)) continue;
             for (Player player : world.getPlayers()) {
                 Location loc = player.getLocation();
-                if (loc.getBlockY() > yMax || !Locations.isCave(loc) || !Rng.chance(chance)) continue;
+                if (loc.getBlockY() > yMax || !Locations.isCave(loc)) continue;
+
+                double depth = depthFactor(loc.getBlockY());
+                double effectiveChance = Math.min(1, chance * (1 + (maxChanceMultiplier - 1) * depth));
+                if (!Rng.chance(effectiveChance)) continue;
 
                 if (sources != null) {
                     boolean tooClose = false;
@@ -89,20 +116,21 @@ public final class AmbientSounds {
                     sources.add(loc);
                 }
 
-                play(Rng.randomElement(sounds), player);
+                play(Rng.randomElement(sounds), player, depth);
             }
         }
     }
 
-    private void play(WrappedSound wrapped, Player player) {
+    private void play(WrappedSound wrapped, Player player, double depth) {
         Location loc = player.getEyeLocation();
         if (radius > 0) {
             loc.add(Rng.nextDouble(-radius, radius), Rng.nextDouble(-radius, radius), Rng.nextDouble(-radius, radius));
         }
+        float pitch = (float) Math.max(0.1, wrapped.pitch() - pitchDrop * depth);
         if (serverWide) {
-            loc.getWorld().playSound(loc, wrapped.sound(), SoundCategory.AMBIENT, wrapped.volume(), wrapped.pitch());
+            loc.getWorld().playSound(loc, wrapped.sound(), SoundCategory.AMBIENT, wrapped.volume(), pitch);
         } else {
-            player.playSound(loc, wrapped.sound(), SoundCategory.AMBIENT, wrapped.volume(), wrapped.pitch());
+            player.playSound(loc, wrapped.sound(), SoundCategory.AMBIENT, wrapped.volume(), pitch);
         }
     }
 }

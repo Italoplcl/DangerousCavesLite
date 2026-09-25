@@ -26,9 +26,15 @@ public final class CavesLite extends JavaPlugin {
     private static final long MOB_TICK = 4L;
     /** Ticks between ambient sound checks (same as the original PLAYER tick). */
     private static final long AMBIENT_TICK = 800L;
+    /** Ticks between ghost-footstep checks. */
+    private static final long FOOTSTEPS_TICK = 60L;
+    /** Ticks between tension-heartbeat checks (the interval settings in config.yml are on top of this). */
+    private static final long TENSION_TICK = 10L;
 
     private MobManager mobs;
     private AmbientSounds ambient;
+    private Footsteps footsteps;
+    private Tension tension;
 
     @Override
     public void onEnable() {
@@ -49,12 +55,16 @@ public final class CavesLite extends JavaPlugin {
         mobs.register(new SmokeDemon());
 
         ambient = new AmbientSounds(this);
+        footsteps = new Footsteps(this);
+        tension = new Tension(this, mobs);
 
         getServer().getPluginManager().registerEvents(mobs, this);
         reloadAll();
 
         getServer().getScheduler().runTaskTimer(this, mobs::tick, MOB_TICK, MOB_TICK);
         getServer().getScheduler().runTaskTimer(this, ambient::tick, AMBIENT_TICK, AMBIENT_TICK);
+        getServer().getScheduler().runTaskTimer(this, footsteps::tick, FOOTSTEPS_TICK, FOOTSTEPS_TICK);
+        getServer().getScheduler().runTaskTimer(this, tension::tick, TENSION_TICK, TENSION_TICK);
 
         PluginCommand command = getCommand("dangerouscaves");
         if (command != null) {
@@ -71,6 +81,8 @@ public final class CavesLite extends JavaPlugin {
                 ? Utils.section(config, "caverns.ambient")
                 : Utils.section(config, "ambient");
         ambient.reload(ambientSection);
+        footsteps.reload(Utils.section(ambientSection, "footsteps"));
+        tension.reload(Utils.section(config, "tension"));
         mobs.reload(Utils.section(config, "mobs"));
     }
 }

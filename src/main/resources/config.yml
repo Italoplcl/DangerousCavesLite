@@ -35,6 +35,53 @@ caverns:
         volume: 1
         pitch: 0.5
 
+    # The deeper a player is, the more often ambient sounds play and the
+    # lower-pitched (spookier) they sound. Set enabled: false to go back to
+    # a flat chance everywhere.
+    depth-scaling:
+      enabled: true
+      # At or below this Y, the effect is at its strongest.
+      y-full: -32
+      # At or above this Y (but still a cave), the effect does nothing.
+      y-none: 60
+      # "chance" above is multiplied by up to this much at y-full.
+      max-chance-multiplier: 3.0
+      # How much is subtracted from a sound's pitch at y-full.
+      pitch-drop: 0.3
+
+    # Ghost footsteps: a step sound plays a few blocks behind a lone player
+    # underground. No mob is actually there.
+    footsteps:
+      enabled: true
+      worlds:
+        - world
+      # Chance checked every 3 seconds (60 ticks)
+      chance: 8
+      y-max: 40
+      # Only plays when the player has no one else within 20 blocks
+      require-alone: true
+      distance: 4
+      behind-only: true
+      sound: minecraft:block.stone.step
+      volume: 0.6
+      pitch: 0.75
+
+# Heartbeat that speeds up when a scary custom mob is nearby.
+tension:
+  enabled: true
+  # Which custom mobs (by id) trigger the heartbeat
+  mobs:
+    - watcher
+    - hungering-darkness
+    - smoke-demon
+  # How far away (in blocks) a watched mob starts the heartbeat
+  radius: 16
+  # Beat interval, in ticks, when the mob is at the edge of "radius" / right on top of the player
+  max-interval-ticks: 60
+  min-interval-ticks: 10
+  sound: minecraft:block.sculk_sensor.clicking
+  volume: 1
+  pitch: 1
 
 mobs:
   enabled: true

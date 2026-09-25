@@ -24,3 +24,10 @@ SOFTWARE.
 
 Additional changes (c) 2026 - port of the ambient sounds and custom mobs to
 Paper 26.x, released under the same MIT license as above.
+
+---
+
+This project is also built against and distributed for use with Purpur
+(https://github.com/PurpurMC/Purpur), a Paper-compatible server fork. Purpur
+and Paper are separate projects; see their own repositories for their license
+terms. No Purpur or Paper code is redistributed in this repository.
